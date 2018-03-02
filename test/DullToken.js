@@ -1,10 +1,17 @@
 var DullToken = artifacts.require("DullToken");
+var DullChannel = artifacts.require("DullChannel");
+
+var token;
+var channel;
+
 
 contract('DullToken', function () {
 
   it("Should have a total supply of 100000000000000000000000000", function() {
     return DullToken.deployed()
       .then(inst => {
+        token = inst;
+        console.log("DullToken smart contract address: " + token.address);
         return inst.totalSupply.call();
       })
       .then(tot => {
