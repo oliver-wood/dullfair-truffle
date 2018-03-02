@@ -15,6 +15,8 @@ import "./ERC20Interface.sol";
 //
 // (c) by Moritz Neto with BokkyPooBah / Bok Consulting Pty Ltd Au 2017. The MIT Licence.
 // ----------------------------------------------------------------------------
+// Edited by Oliver Wood March 2, 2018
+// ----------------------------------------------------------------------------
 
 
 // ----------------------------------------------------------------------------
@@ -129,8 +131,8 @@ contract DullToken is ERC20Interface, Owned, SafeMath {
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
     function transfer(address to, uint tokens) public returns (bool success) {
-        balances[msg.sender] = safeSub(balances[msg.sender], tokens);
-        balances[to] = safeAdd(balances[to], tokens);
+        balances[msg.sender] = balances[msg.sender] - tokens; // safeSub(balances[msg.sender], tokens);
+        balances[to] = balances[to] + tokens; // safeAdd(balances[to], tokens);
         Transfer(msg.sender, to, tokens);
         return true;
     }
@@ -161,9 +163,9 @@ contract DullToken is ERC20Interface, Owned, SafeMath {
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
     function transferFrom(address from, address to, uint tokens) public returns (bool success) {
-        balances[from] = safeSub(balances[from], tokens);
-        allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
-        balances[to] = safeAdd(balances[to], tokens);
+        balances[from] = balances[from] - tokens; // safeSub(balances[from], tokens);
+        allowed[from][msg.sender] = allowed[from][msg.sender] - tokens; // safeSub(allowed[from][msg.sender], tokens);
+        balances[to] = balances[to] + tokens; // safeAdd(balances[to], tokens);
         Transfer(from, to, tokens);
         return true;
     }

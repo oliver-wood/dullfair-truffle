@@ -1,6 +1,12 @@
 pragma solidity ^0.4.18;
 import "./ERC20Interface.sol";
 
+// ----------------------------------------------------------------------------
+// Based on the contract 
+// https://github.com/alex-miller-0/eth-dev-101/blob/master/truffle/contracts/TwoWayChannel.sol
+// ----------------------------------------------------------------------------
+// Modified by Oliver Wood March 2, 2018
+// ----------------------------------------------------------------------------
 contract DullChannel {
 
   //============================================================================
@@ -11,8 +17,8 @@ contract DullChannel {
     address house;
     address player;
     address token;
-    uint depositHouse;       // Deposit of agent A
-    uint depositPlayer;       // Deposit of agent B
+    uint depositHouse;       // Deposit of the House
+    uint depositPlayer;       // Deposit of the player
     bool openHouse;          // True if A->B is open
     bool openPlayer;          // True if B->A is open
   }
@@ -20,31 +26,33 @@ contract DullChannel {
   mapping (bytes32 => Channel) channels;
   mapping (address => mapping(address => bytes32)) active_ids;
 
+  event GeneralState(string message);
+  event GeneralState5(address message);
 
   //============================================================================
   // STATE TRANSITION FUNCTIONS
   //============================================================================
 
 	/**
-	 * Open a channel with a recipient. A non-zero message value must be included.
+	 * Open a channel with a player.
    *
-	 * address token    Address of token contract
-	 * address to       Address of recipient
+	 * address token    Address of token contract (DULL Tokens)
+	 * address to       Address of player
    * uint amount      Number of token quanta to send
 	 */
-	function openChannel(address token, address to, uint amount) public {
+	function openChannel(address token, address player, uint amount) public {
     // Sanity checks
     require (amount > 0);
-    require (to != msg.sender);
-    require (active_ids[msg.sender][to] == bytes32(0));
+    require (player != msg.sender);
+    require (active_ids[msg.sender][player] == bytes32(0));
 
     // Create a channel
-    bytes32 id = keccak256(msg.sender, to, now);
-
+    bytes32 id = keccak256(msg.sender, player, now);
+    
     // Initialize the channel
     Channel memory _channel;
     _channel.house = msg.sender;
-    _channel.player = to;
+    _channel.player = player;
     _channel.token = token;
     _channel.depositHouse = amount;     // Note that the actor opening the channel is actorA
     _channel.openHouse = true;
@@ -58,8 +66,8 @@ contract DullChannel {
 
     channels[id] = _channel;
 
-    // Add it to the lookup table
-    active_ids[msg.sender][to] = id;
+    // Add it to the lookup table. This can be retrieved later
+    active_ids[msg.sender][player] = id;
 	}
 
 
@@ -87,11 +95,12 @@ contract DullChannel {
       if (!t.transferFrom(msg.sender, address(this), amount)) {
         revert(); 
       }
+      GeneralState5(msg.sender);
       _channel.depositPlayer += amount;
     } else {
       revert();
     }
-
+    channels[id] = _channel;
   }
 
 
@@ -251,19 +260,19 @@ contract DullChannel {
     return active_ids[from][to];
   }
 
-  function getDepositA(bytes32 id) public view returns (uint) {
+  function getDepositHouse(bytes32 id) public view returns (uint) {
     return channels[id].depositHouse;
   }
 
-  function getDepositB(bytes32 id) public view returns (uint) {
+  function getDepositPlayer(bytes32 id) public view returns (uint) {
     return channels[id].depositPlayer;
   }
 
-  function getAgentA(bytes32 id) public view returns (address) {
+  function getHouseAddress(bytes32 id) public view returns (address) {
     return channels[id].house;
   }
 
-  function getAgentB(bytes32 id) public view returns (address) {
+  function getPlayerAddress(bytes32 id) public view returns (address) {
     return channels[id].player;
   }
 
