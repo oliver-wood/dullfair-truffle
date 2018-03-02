@@ -1,4 +1,4 @@
-#dullfair-truffle
+# dullfair-truffle
 DullFair, the boring casino. This is the smart contracts part
 
 In my head this is a one-game casino. The game is a game of chance (or at least it'll look that way, I have no interest in the game mechanics at this time) played initially against a server, the house.
